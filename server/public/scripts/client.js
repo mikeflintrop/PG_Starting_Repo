@@ -3,6 +3,8 @@ $(document).ready(onReady);
 function onReady() {
     getSongs();
     $('#add').on('click', postSong);
+    $('#songsTableBody').on('click', '.btn-delete', deleteSong);
+    $('#songsTableBody').on('click', '.btn-rank', voteOnSong);
 }
 
 // get artist data from the server
@@ -21,6 +23,22 @@ function getSongs() {
                     <td>${response[i].track}</td>
                     <td>${response[i].rank}</td>
                     <td>${response[i].published}</td>
+                    <td>
+                        <button
+                            data-id=${response[i].id}
+                            data-direction="up"
+                            class="btn-rank"
+                        >👍</button>
+                        <button
+                            data-id=${response[i].id}
+                            data-direction="down"
+                            class="btn-rank"
+                        >💩</button>
+                        <button 
+                            data-id=${response[i].id}
+                            class="btn-delete"
+                        >DELETE</button>
+                    </td>
                 </tr>
             `);
         }
@@ -45,4 +63,36 @@ function postSong() {
         $('#published').val('')
         getSongs();
     });
+}
+
+function deleteSong() {
+    console.log(songId);
+    let songId = $(this).data('id');
+    $.ajax({
+        type: 'DELETE',
+        url: `/songs/${songId}`
+    })
+    .then( function (response) {
+        console.log('It is deleted!');
+        getSongs();
+    })
+    .catch( function (error) {
+        alert('Error deleting:', error);
+    });
+}
+
+function voteOnSong() {
+    let songId = $(this).data('id');
+    let voteDirection = $(this).data('direction');
+    $.ajax({
+        type: 'PUT',
+        url: `/songs/rank/${songId}`,
+        data: {direction: voteDirection}
+    })
+    .then( function () {
+        getSongs();
+    })
+    .catch( function (error) {
+        alert('Error in voting:', error);
+    })
 }
